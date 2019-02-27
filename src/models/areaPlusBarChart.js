@@ -1,12 +1,12 @@
-nv.models.linePlusBarChart = function() {
+nv.models.areaPlusBarChart = function() {
     "use strict";
 
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
 
-    var lines = nv.models.line()
-        , lines2 = nv.models.line()
+    var stacks = nv.models.stackedArea()
+        , stacks2 = nv.models.stackedArea()
         , bars = nv.models.historicalBar()
         , bars2 = nv.models.historicalBar()
         , xAxis = nv.models.axis()
@@ -53,10 +53,10 @@ nv.models.linePlusBarChart = function() {
         , useInteractiveGuideline = false
         ;
 
-    lines.clipEdge(true);
-    lines2.interactive(false);
+    stacks.clipEdge(true);
+    stacks2.interactive(false);
     // We don't want any points emitted for the focus chart's scatter graph.
-    lines2.pointActive(function(d) { return false });
+    stacks2.pointActive(function(d) { return false });
     xAxis.orient('bottom').tickPadding(5);
     y1Axis.orient('left');
     y2Axis.orient('right');
@@ -78,7 +78,7 @@ nv.models.linePlusBarChart = function() {
             : { main: y1Axis, focus: y3Axis }
     }
 
-    var getLinesAxis = function() {
+    var getStacksAxis = function() {
         return switchYAxisOrder
             ? { main: y1Axis, focus: y3Axis }
             : { main: y2Axis, focus: y4Axis }
@@ -149,21 +149,21 @@ nv.models.linePlusBarChart = function() {
 
             // Setup Scales
             var dataBars = data.filter(function(d) { return !d.disabled && d.bar });
-            var dataLines = data.filter(function(d) { return !d.bar }); // removed the !d.disabled clause here to fix Issue #240
+            var dataStacks = data.filter(function(d) { return !d.bar }); // removed the !d.disabled clause here to fix Issue #240
 
             if (dataBars.length && !switchYAxisOrder) {
                 x = bars.xScale();
             } else {
-                x = lines.xScale();
+                x = stacks.xScale();
             }
 
             x2 = x2Axis.scale();
 
             // select the scales and series based on the position of the yAxis
-            y1 = switchYAxisOrder ? lines.yScale() : bars.yScale();
-            y2 = switchYAxisOrder ? bars.yScale() : lines.yScale();
-            y3 = switchYAxisOrder ? lines2.yScale() : bars2.yScale();
-            y4 = switchYAxisOrder ? bars2.yScale() : lines2.yScale();
+            y1 = switchYAxisOrder ? stacks.yScale() : bars.yScale();
+            y2 = switchYAxisOrder ? bars.yScale() : stacks.yScale();
+            y3 = switchYAxisOrder ? stacks2.yScale() : bars2.yScale();
+            y4 = switchYAxisOrder ? bars2.yScale() : stacks2.yScale();
 
             var series1 = data
                 .filter(function(d) { return !d.disabled && (switchYAxisOrder ? !d.bar : d.bar) })
@@ -199,7 +199,7 @@ nv.models.linePlusBarChart = function() {
             focusEnter.append('g').attr('class', 'nv-y1 nv-axis');
             focusEnter.append('g').attr('class', 'nv-y2 nv-axis');
             focusEnter.append('g').attr('class', 'nv-barsWrap');
-            focusEnter.append('g').attr('class', 'nv-linesWrap');
+            focusEnter.append('g').attr('class', 'nv-stacksWrap');
             focusEnter.append('g').attr('class', 'nv-interactive');
 
             // context chart is where you can focus in
@@ -208,7 +208,7 @@ nv.models.linePlusBarChart = function() {
             contextEnter.append('g').attr('class', 'nv-y1 nv-axis');
             contextEnter.append('g').attr('class', 'nv-y2 nv-axis');
             contextEnter.append('g').attr('class', 'nv-barsWrap');
-            contextEnter.append('g').attr('class', 'nv-linesWrap');
+            contextEnter.append('g').attr('class', 'nv-stacksWrap');
             contextEnter.append('g').attr('class', 'nv-brushBackground');
             contextEnter.append('g').attr('class', 'nv-x nv-brush');
 
@@ -263,7 +263,7 @@ nv.models.linePlusBarChart = function() {
                 }).filter(function (d, i) {
                     return !data[i].disabled && data[i].bar
                 }));
-            lines2
+            stacks2
                 .width(availableWidth)
                 .height(availableHeight2)
                 .color(data.map(function (d, i) {
@@ -276,10 +276,10 @@ nv.models.linePlusBarChart = function() {
                 .datum(dataBars.length ? dataBars : [
                     {values: []}
                 ]);
-            var lines2Wrap = g.select('.nv-context .nv-linesWrap')
-                .datum(allDisabled(dataLines) ?
+            var stacks2Wrap = g.select('.nv-context .nv-stacksWrap')
+                .datum(allDisabled(dataStacks) ?
                        [{values: []}] :
-                       dataLines.filter(function(dataLine) {
+                       dataStacks.filter(function(dataLine) {
                          return !dataLine.disabled;
                        }));
 
@@ -287,7 +287,7 @@ nv.models.linePlusBarChart = function() {
                 .attr('transform', 'translate(0,' + ( availableHeight1 + margin.bottom + margin2.top) + ')');
 
             bars2Wrap.transition().call(bars2);
-            lines2Wrap.transition().call(lines2);
+            stacks2Wrap.transition().call(stacks2);
 
             // context (focus chart) axis controls
             if (focusShowAxisX) {
@@ -314,7 +314,7 @@ nv.models.linePlusBarChart = function() {
                     .style('opacity', dataBars.length ? 1 : 0)
                     .attr('transform', 'translate(0,' + x2.range()[0] + ')');
                 g.select('.nv-context .nv-y2.nv-axis')
-                    .style('opacity', dataLines.length ? 1 : 0)
+                    .style('opacity', dataStacks.length ? 1 : 0)
                     .attr('transform', 'translate(' + x2.range()[1] + ',0)');
 
                 g.select('.nv-context .nv-y1.nv-axis').transition()
@@ -428,7 +428,7 @@ nv.models.linePlusBarChart = function() {
                 dispatch.brush({extent: extent, brush: brush});
                 updateBrushBG();
 
-                // Prepare Main (Focus) Bars and Lines
+                // Prepare Main (Focus) Bars and Stacks
                 bars
                     .width(availableWidth)
                     .height(availableHeight1)
@@ -436,7 +436,7 @@ nv.models.linePlusBarChart = function() {
                         return d.color || color(d, i);
                     }).filter(function(d,i) { return !data[i].disabled && data[i].bar }));
 
-                lines
+                stacks
                     .width(availableWidth)
                     .height(availableHeight1)
                     .color(data.map(function(d,i) {
@@ -456,9 +456,9 @@ nv.models.linePlusBarChart = function() {
                             })
                 );
 
-                var focusLinesWrap = g.select('.nv-focus .nv-linesWrap')
-                    .datum(allDisabled(dataLines) ? [{values:[]}] :
-                           dataLines
+                var focusStacksWrap = g.select('.nv-focus .nv-stacksWrap')
+                    .datum(allDisabled(dataStacks) ? [{values:[]}] :
+                           dataStacks
                            .filter(function(dataLine) { return !dataLine.disabled; })
                            .map(function(d,i) {
                                 return {
@@ -467,7 +467,7 @@ nv.models.linePlusBarChart = function() {
                                     strokeWidth: d.strokeWidth,
                                     key: d.key,
                                     values: d.values.filter(function(d,i) {
-                                        return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
+                                        return stacks.x()(d,i) >= extent[0] && stacks.x()(d,i) <= extent[1];
                                     })
                                 }
                             })
@@ -477,7 +477,7 @@ nv.models.linePlusBarChart = function() {
                 if (dataBars.length && !switchYAxisOrder) {
                     x = bars.xScale();
                 } else {
-                    x = lines.xScale();
+                    x = stacks.xScale();
                 }
 
                 xAxis
@@ -490,9 +490,9 @@ nv.models.linePlusBarChart = function() {
                 g.select('.nv-x.nv-axis').transition().duration(transitionDuration)
                     .call(xAxis);
 
-                // Update Main (Focus) Bars and Lines
+                // Update Main (Focus) Bars and Stacks
                 focusBarsWrap.transition().duration(transitionDuration).call(bars);
-                focusLinesWrap.transition().duration(transitionDuration).call(lines);
+                focusStacksWrap.transition().duration(transitionDuration).call(stacks);
 
                 // Setup and Update Main (Focus) Y Axes
                 g.select('.nv-focus .nv-x.nv-axis')
@@ -510,15 +510,15 @@ nv.models.linePlusBarChart = function() {
                 if(!switchYAxisOrder) {
                     y2Axis.tickSize(dataBars.length ? 0 : -availableWidth, 0);
                 } else {
-                    y2Axis.tickSize(dataLines.length ? 0 : -availableWidth, 0);
+                    y2Axis.tickSize(dataStacks.length ? 0 : -availableWidth, 0);
                 }
 
                 // Calculate opacity of the axis
                 var barsOpacity = dataBars.length ? 1 : 0;
-                var linesOpacity = dataLines.length && !allDisabled(dataLines) ? 1 : 0;
+                var stacksOpacity = dataStacks.length && !allDisabled(dataStacks) ? 1 : 0;
 
-                var y1Opacity = switchYAxisOrder ? linesOpacity : barsOpacity;
-                var y2Opacity = switchYAxisOrder ? barsOpacity : linesOpacity;
+                var y1Opacity = switchYAxisOrder ? stacksOpacity : barsOpacity;
+                var y2Opacity = switchYAxisOrder ? barsOpacity : stacksOpacity;
 
                 g.select('.nv-focus .nv-y1.nv-axis')
                     .style('opacity', y1Opacity);
@@ -539,8 +539,8 @@ nv.models.linePlusBarChart = function() {
             //------------------------------------------------------------
         
             function clearHighlights() {
-                lines.clearHighlights();
-                lines2.clearHighlights();
+                stacks.clearHighlights();
+                stacks2.clearHighlights();
                 bars.clearHighlights();
                 bars2.clearHighlights();
             }
@@ -548,8 +548,8 @@ nv.models.linePlusBarChart = function() {
             function highlightPoint(series, pointIndex, b, pointYValue) {
               var isBar = series.bar || false;
         
-              var relevantChart = isBar ? bars : lines;
-              var relevantDatasets = isBar ? dataBars : dataLines;;
+              var relevantChart = isBar ? bars : stacks;
+              var relevantDatasets = isBar ? dataBars : dataStacks;;
               var seriesIndex = relevantDatasets.reduce(function (seriesIndex, dataSet, i) {
                 return dataSet.key === series.key ? i : seriesIndex;
               }, 0);
@@ -584,13 +584,13 @@ nv.models.linePlusBarChart = function() {
                         if (singlePoint === undefined) singlePoint = point;
                         if (pointXLocation === undefined) pointXLocation = x(chart.x()(point,pointIndex));
                         var barAxis = switchYAxisOrder ? y2Axis : y1Axis;
-                        var linesAxis = switchYAxisOrder ? y1Axis : y2Axis;
+                        var stacksAxis = switchYAxisOrder ? y1Axis : y2Axis;
                         allData.push({
                             key: series.key,
                             value: pointYValue,
                             color: color(series,series.seriesIndex),
                             data: point,
-                            yAxis: series.bar ? barAxis : linesAxis
+                            yAxis: series.bar ? barAxis : stacksAxis
                         });
                     });
         
@@ -616,17 +616,17 @@ nv.models.linePlusBarChart = function() {
                     clearHighlights();
                 });
             } else {
-                lines.dispatch.on('elementMouseover.tooltip', function(evt) {
+                stacks.dispatch.on('elementMouseover.tooltip', function(evt) {
                     tooltip
                         .duration(100)
                         .valueFormatter(function(d, i) {
-                            return getLinesAxis().main.tickFormat()(d, i);
+                            return getStacksAxis().main.tickFormat()(d, i);
                         })
                         .data(evt)
                         .hidden(false);
                 });
             
-                lines.dispatch.on('elementMouseout.tooltip', function(evt) {
+                stacks.dispatch.on('elementMouseout.tooltip', function(evt) {
                     tooltip.hidden(true)
                 });
             
@@ -658,6 +658,7 @@ nv.models.linePlusBarChart = function() {
         return chart;
     }
 
+
     //============================================================
 
 
@@ -668,8 +669,8 @@ nv.models.linePlusBarChart = function() {
     // expose chart's sub-components
     chart.dispatch = dispatch;
     chart.legend = legend;
-    chart.lines = lines;
-    chart.lines2 = lines2;
+    chart.stacks = stacks;
+    chart.stacks2 = stacks2;
     chart.bars = bars;
     chart.bars2 = bars2;
     chart.xAxis = xAxis;
@@ -722,25 +723,25 @@ nv.models.linePlusBarChart = function() {
         }},
         x: {get: function(){return getX;}, set: function(_){
             getX = _;
-            lines.x(_);
-            lines2.x(_);
+            stacks.x(_);
+            stacks2.x(_);
             bars.x(_);
             bars2.x(_);
         }},
         y: {get: function(){return getY;}, set: function(_){
             getY = _;
-            lines.y(_);
-            lines2.y(_);
+            stacks.y(_);
+            stacks2.y(_);
             bars.y(_);
             bars2.y(_);
         }},
         useInteractiveGuideline: {get: function(){return useInteractiveGuideline;}, set: function(_){
             useInteractiveGuideline = _;
             if (useInteractiveGuideline) {
-                lines.interactive(false);
-                lines.useVoronoi(false);
-                lines2.interactive(false);
-                lines2.useVoronoi(false);
+                stacks.interactive(false);
+                stacks.useVoronoi(false);
+                stacks2.interactive(false);
+                stacks2.useVoronoi(false);
             }
         }},
         switchYAxisOrder:    {get: function(){return switchYAxisOrder;}, set: function(_){
@@ -763,7 +764,7 @@ nv.models.linePlusBarChart = function() {
         }}
     });
 
-    nv.utils.inheritOptions(chart, lines);
+    nv.utils.inheritOptions(chart, stacks);
     nv.utils.initOptions(chart);
 
     return chart;
