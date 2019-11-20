@@ -82,11 +82,12 @@ nv.models.line = function() {
 
             defsEnter.append('clipPath')
                 .attr('id', 'nv-edge-clip-' + scatter.id())
-                .append('rect');
+                .append('rect')
+                .attr('transform', 'translate( -10, -10)');
 
             wrap.select('#nv-edge-clip-' + scatter.id() + ' rect')
-                .attr('width', availableWidth)
-                .attr('height', (availableHeight > 0) ? availableHeight : 0);
+                .attr('width', availableWidth + 20)
+                .attr('height', (availableHeight > 0) ? availableHeight + 20 : 0);
 
             g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + scatter.id() + ')' : '');
             scatterWrap
